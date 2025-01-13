@@ -1,0 +1,7 @@
+{
+  "message": "Input belum sesuai",
+  "error": {
+    "email": "Email belum valid",
+    "password": "Password belum valid"
+  }
+}

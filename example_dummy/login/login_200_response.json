@@ -1,0 +1,11 @@
+{
+  "message": "Berhasil Login",
+  "data": {
+    "access_token": "ACCESS_TOKEN",
+    "refresh_token": "REFRESH_TOKEN",
+    "user": {
+      "id": "id",
+      "email": "admin@domain.com"
+    }
+  }
+}
