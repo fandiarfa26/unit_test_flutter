@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:http/http.dart' as http;
@@ -21,192 +25,165 @@ void main() {
 
   group('Test Case Login', () {
     test('200 - Login Berhasil', () async {
-      String email = 'admin@domain.com';
-      String password = '!Password123';
-      when(mockClient.post(Uri.parse('.../login'), body: {
+      final email = 'admin@domain.com';
+      final password = '!Password123';
+
+      final uri = Uri.parse('.../login');
+      final body = {
         'email': email,
         'password': password,
-      })).thenAnswer((_) async => Future.value(http.Response('''
-      {
-        "message": "Berhasil Login",
-        "data": {
-          "access_token": "ACCESS_TOKEN",
-          "refresh_token": "REFRESH_TOKEN",
-          "user": {
-            "id": "id",
-            "email": "admin@domain.com"
-          }
-        }
-      }
-      ''', 200)));
-
-      final response = await dataSources.login(email: email, password: password);
-      expect(
-        response,
-        equals(
-          Response<Auth?>(
-            message: 'Berhasil Login',
-            data: Auth(
-              accessToken: 'ACCESS_TOKEN',
-              refreshToken: 'REFRESH_TOKEN',
-              user: User(id: 'id', email: 'admin@domain.com'),
-            ),
-          ),
+      };
+      final responseFile = File('json/login/login_200_response.json');
+      final mockResponse = await responseFile.readAsString();
+      final expectedResponse = Response<Auth?>(
+        message: 'Berhasil Login',
+        data: Auth(
+          accessToken: 'ACCESS_TOKEN',
+          refreshToken: 'REFRESH_TOKEN',
+          user: User(id: 'id', email: 'admin@domain.com'),
         ),
       );
+
+      when(mockClient.post(uri, body: body)).thenAnswer((_) async => Future.value(http.Response(mockResponse, 200)));
+
+      final response = await dataSources.login(email: email, password: password);
+      expect(response, equals(expectedResponse));
+      verify(mockClient.post(uri, body: body)).called(1);
     });
 
     test("400 - Input belum sesuai", () async {
       String email = '.com';
       String password = '!';
-      when(mockClient.post(Uri.parse('.../login'), body: {
+
+      final uri = Uri.parse('.../login');
+      final body = {
         'email': email,
         'password': password,
-      })).thenAnswer((_) async => Future.value(http.Response('''
-      {
-        "message": "Input belum sesuai",
-        "error": {
-          "email": "Email belum valid",
-          "password": "Password belum valid"
-        }
-      }
-      ''', 400)));
+      };
+      final responseFile = File('json/login/login_400_response.json');
+      final mockResponse = await responseFile.readAsString();
+      final expectedResponse = Response<Auth?>(
+        message: 'Input belum sesuai',
+        error: {
+          'email': 'Email belum valid',
+          'password': 'Password belum valid',
+        },
+      );
+
+      when(mockClient.post(uri, body: body)).thenAnswer((_) async => Future.value(http.Response(mockResponse, 400)));
 
       final response = await dataSources.login(email: email, password: password);
-      expect(
-        response,
-        equals(
-          Response<Auth?>(
-            message: 'Input belum sesuai',
-            error: {
-              'email': 'Email belum valid',
-              'password': 'Password belum valid',
-            },
-          ),
-        ),
-      );
+      expect(response, equals(expectedResponse));
+      verify(mockClient.post(uri, body: body)).called(1);
     });
 
     test("404 - Not Found", () async {
       String email = 'admin@domain';
       String password = '!asa';
-      when(mockClient.post(Uri.parse('.../login'), body: {
+
+      final uri = Uri.parse('.../login');
+      final body = {
         'email': email,
         'password': password,
-      })).thenAnswer((_) async => Future.value(http.Response('''
-      {
-        "message": "Not Found"
-      }
-      ''', 404)));
+      };
+      final responseFile = File('json/login/login_404_response.json');
+      final mockResponse = await responseFile.readAsString();
+      final expectedResponse = Response<Auth?>(
+        message: 'Not Found',
+      );
+
+      when(mockClient.post(uri, body: body)).thenAnswer((_) async => Future.value(http.Response(mockResponse, 404)));
 
       final response = await dataSources.login(email: email, password: password);
-      expect(
-        response,
-        equals(
-          Response<Auth?>(
-            message: 'Not Found',
-          ),
-        ),
-      );
+      expect(response, equals(expectedResponse));
+      verify(mockClient.post(uri, body: body)).called(1);
     });
 
     test("500 - Server Error", () async {
       String email = 'admin@';
       String password = '!asa';
-      when(mockClient.post(Uri.parse('.../login'), body: {
+
+      final uri = Uri.parse('.../login');
+      final body = {
         'email': email,
         'password': password,
-      })).thenAnswer((_) async => Future.value(http.Response('''
-      {
-        "message": "Server Error"
-      }
-      ''', 500)));
+      };
+      final responseFile = File('json/login/login_500_response.json');
+      final mockResponse = await responseFile.readAsString();
+      final expectedResponse = Response<Auth?>(
+        message: 'Server Error',
+      );
+
+      when(mockClient.post(uri, body: body)).thenAnswer((_) async => Future.value(http.Response(mockResponse, 500)));
 
       final response = await dataSources.login(email: email, password: password);
-      expect(
-        response,
-        equals(
-          Response<Auth?>(
-            message: 'Server Error',
-          ),
-        ),
-      );
+      expect(response, equals(expectedResponse));
+      verify(mockClient.post(uri, body: body)).called(1);
     });
   });
 
   group('Test Case Get Products', () {
     test('200 - Get Products Berhasil', () async {
-      when(mockClient.get(Uri.parse('.../products'))).thenAnswer((_) async => Future.value(http.Response('''
-      {
-        "message": "Berhasil Get Products",
-        "data": [
-          {
-            "name": "nama product",
-            "qty": 1,
-            "price": 10000
-          }
-        ]
-      }
-      ''', 200)));
+      final uri = Uri.parse('.../products');
+      final responseFile = File('json/product/product_200_response.json');
+      final mockResponse = await responseFile.readAsString();
+      final expectedResponse = Response<List<Product>>(
+        message: 'Berhasil Get Products',
+        data: [
+          Product(name: 'nama product', qty: 1, price: 10000),
+        ],
+      );
+
+      when(mockClient.get(uri)).thenAnswer((_) async => Future.value(http.Response(mockResponse, 200)));
 
       final response = await dataSources.getProducts();
-      expect(
-        response,
-        equals(Response<List<Product>>(
-          message: 'Berhasil Get Products',
-          data: [
-            Product(name: 'nama product', qty: 1, price: 10000),
-          ],
-        )),
-      );
+      expect(response, equals(expectedResponse));
+      verify(mockClient.get(uri)).called(1);
     });
 
     test('400 - Get Products Failed', () async {
-      when(mockClient.get(Uri.parse('.../products'))).thenAnswer((_) async => Future.value(http.Response('''
-      {
-        "message": "Get Products Failed"
-      }
-      ''', 400)));
+      final uri = Uri.parse('.../products');
+      final responseFile = File('json/product/product_400_response.json');
+      final mockResponse = await responseFile.readAsString();
+      final expectedResponse = Response<List<Product>>(
+        message: 'Get Products Failed',
+      );
+
+      when(mockClient.get(uri)).thenAnswer((_) async => Future.value(http.Response(mockResponse, 400)));
 
       final response = await dataSources.getProducts();
-      expect(
-        response,
-        equals(Response<List<Product>>(
-          message: 'Get Products Failed',
-        )),
-      );
+      expect(response, equals(expectedResponse));
+      verify(mockClient.get(uri)).called(1);
     });
 
     test('404 - Get Products Not Found', () async {
-      when(mockClient.get(Uri.parse('.../products'))).thenAnswer((_) async => Future.value(http.Response('''
-      {
-        "message": "Get Products Not Found"
-      }
-      ''', 404)));
+      final uri = Uri.parse('.../products');
+      final responseFile = File('json/product/product_404_response.json');
+      final mockResponse = await responseFile.readAsString();
+      final expectedResponse = Response<List<Product>>(
+        message: 'Get Products Not Found',
+      );
+
+      when(mockClient.get(uri)).thenAnswer((_) async => Future.value(http.Response(mockResponse, 404)));
 
       final response = await dataSources.getProducts();
-      expect(
-        response,
-        equals(Response<List<Product>>(
-          message: 'Get Products Not Found',
-        )),
-      );
+      expect(response, equals(expectedResponse));
+      verify(mockClient.get(uri)).called(1);
     });
 
     test('500 - Get Products Server Error', () async {
-      when(mockClient.get(Uri.parse('.../products'))).thenAnswer((_) async => Future.value(http.Response('''
-      {
-        "message": "Get Products Server Error"
-      }
-      ''', 500)));
+      final uri = Uri.parse('.../products');
+      final responseFile = File('json/product/product_500_response.json');
+      final mockResponse = await responseFile.readAsString();
+      final expectedResponse = Response<List<Product>>(
+        message: 'Get Products Server Error',
+      );
+
+      when(mockClient.get(uri)).thenAnswer((_) async => Future.value(http.Response(mockResponse, 500)));
 
       final response = await dataSources.getProducts();
-      expect(
-        response,
-        equals(Response<List<Product>>(
-          message: 'Get Products Server Error',
-        )),
-      );
+      expect(response, equals(expectedResponse));
+      verify(mockClient.get(uri)).called(1);
     });
   });
 }

@@ -17,8 +17,8 @@ class DataSources {
       Uri.parse(url),
       body: {
         'email': email,
-        // 'password': password, // ini yg benar
-        'passwords': password, // ini yg salah
+        'password': password, // ini yg benar
+        // 'passwords': password, // ini yg salah
       },
     );
 
